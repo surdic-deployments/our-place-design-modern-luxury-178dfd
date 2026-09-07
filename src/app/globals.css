@@ -1,0 +1,382 @@
+@import "tailwindcss";
+
+:root {
+  --noir-950: #120d08;
+  --noir-900: #1c160d;
+  --noir-800: #211c15;
+  --noir-700: #2c261c;
+  --noir-600: #453b2a;
+
+  --cream-100: #f4efe4;
+  --cream-300: #cabd9f;
+  --cream-500: #93876d;
+
+  --gold-300: #e3c98a;
+  --gold-400: #c9a35a;
+  --gold-500: #b28d47;
+  --gold-600: #9c7a3c;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@theme inline {
+  --color-noir-950: var(--noir-950);
+  --color-noir-900: var(--noir-900);
+  --color-noir-800: var(--noir-800);
+  --color-noir-700: var(--noir-700);
+  --color-noir-600: var(--noir-600);
+
+  --color-cream-100: var(--cream-100);
+  --color-cream-300: var(--cream-300);
+  --color-cream-500: var(--cream-500);
+
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  border-color: var(--noir-700);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--noir-900);
+  color: var(--cream-100);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "tnum" 1;
+}
+
+::selection {
+  background: var(--gold-400);
+  color: var(--noir-950);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--noir-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--noir-600);
+  border: 2px solid var(--noir-900);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-600);
+}
+html {
+  scrollbar-color: var(--noir-600) var(--noir-900);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--gold-400);
+  outline-offset: 3px;
+}
+
+a {
+  text-underline-offset: 0.25em;
+}
+
+.font-display {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+}
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+/* ---------------------------------------------------------------- */
+/* Film grain: a real, seen material (not the hero's anti-banding     */
+/* pass), animated so it reads as film stock rather than a flat PNG.  */
+/* ---------------------------------------------------------------- */
+
+.film-grain {
+  position: fixed;
+  inset: -12%;
+  pointer-events: none;
+  z-index: 50;
+  filter: url(#film-grain);
+  /* `overlay` collapses toward 2*base*blend and self-cancels on a base
+     this dark (verified: measured stddev 0 everywhere but the hero's own
+     bright glow). `screen` always adds light regardless of base color,
+     so it stays visible across the whole near-black page. */
+  mix-blend-mode: screen;
+  opacity: 0.06;
+  animation: grain-flicker 0.7s steps(1) infinite;
+}
+
+@keyframes grain-flicker {
+  0% { transform: translate(0, 0); }
+  14% { transform: translate(-1.5%, 1%); }
+  28% { transform: translate(1%, -1.5%); }
+  42% { transform: translate(-1%, 1.5%); }
+  57% { transform: translate(1.5%, -1%); }
+  71% { transform: translate(-1.5%, -1%); }
+  85% { transform: translate(1%, 1%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Letterbox bars: thin cinema-aspect framing on the hero only */
+.letterbox-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Pure black, not --noir-950: the atmosphere gradient already fades to
+     --noir-950 by 65%, so a bar in that same color was invisible against
+     it. Black plus a hairline gold edge reads unmistakably as a frame,
+     not an accidental seam. */
+  height: clamp(14px, 3.2vh, 34px);
+  background: #000;
+  z-index: 5;
+  pointer-events: none;
+}
+.letterbox-top {
+  top: 0;
+  border-bottom: 1px solid rgb(201 163 90 / 0.28);
+}
+.letterbox-bottom {
+  bottom: 0;
+  border-top: 1px solid rgb(201 163 90 / 0.28);
+}
+
+/* Light leak: a slow diagonal warm streak, the one extra filmic beat
+   beyond grain/letterbox — confined to the hero via its overflow:hidden
+   parent. */
+.light-leak {
+  position: absolute;
+  inset: -20% -40%;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgb(226 180 100 / 0.1) 48%,
+    rgb(226 180 100 / 0.16) 52%,
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  animation: light-leak-drift 22s ease-in-out infinite alternate;
+}
+@keyframes light-leak-drift {
+  from {
+    transform: translate(-6%, -2%);
+  }
+  to {
+    transform: translate(6%, 2%);
+  }
+}
+
+/* Scene-number corner tag: a shooting-script slate, never a kicker */
+.scene-tag {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+  opacity: 0.85;
+}
+
+/* Isolate-and-dim spotlight: focusing one item dims its siblings */
+.spotlight-item {
+  transition: opacity 380ms var(--ease-out);
+}
+.spotlight-group:has(.spotlight-item:hover, .spotlight-item:focus-visible)
+  .spotlight-item:not(:hover):not(:focus-visible) {
+  opacity: 0.4;
+}
+
+/* Hero kinetic entrance: blur-to-sharp focus pull, staggered per line */
+.hero-line {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(24px);
+  animation: hero-line-in 900ms var(--ease-out) forwards;
+}
+@keyframes hero-line-in {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Atmospheric ground: stands in for full-bleed photography without   */
+/* pretending to be a photograph — light bloom on warm near-black.    */
+/* ---------------------------------------------------------------- */
+
+.atmosphere {
+  position: relative;
+  overflow: hidden;
+  background: var(--noir-900);
+}
+
+.atmosphere-bg {
+  position: absolute;
+  inset: -6% -6%;
+  pointer-events: none;
+  background:
+    radial-gradient(65% 60% at 74% 24%, rgb(201 163 90 / 0.34), transparent 62%),
+    radial-gradient(55% 50% at 14% 82%, rgb(201 163 90 / 0.18), transparent 68%),
+    radial-gradient(90% 70% at 50% 0%, rgb(201 163 90 / 0.1), transparent 55%),
+    linear-gradient(180deg, var(--noir-900), var(--noir-950) 65%);
+}
+
+.atmosphere-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  filter: url(#fine-grain);
+  mix-blend-mode: overlay;
+  opacity: 0.05;
+}
+
+.atmosphere-parallax {
+  will-change: transform;
+}
+
+/* Hairline divider, the one recurring structural rule */
+.hairline {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--noir-600) 20%,
+    var(--noir-600) 80%,
+    transparent
+  );
+}
+
+/* Small tracked-out label, used for eyebrows the canon convention expects */
+.label-caps {
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+}
+
+/* Gold-outlined pill CTA, the one primary control */
+.cta-gold {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+  background: transparent;
+  border: 1px solid var(--gold-600);
+  border-radius: 2px;
+  padding: 0.9em 2em;
+  transition: color 320ms var(--ease-out), border-color 320ms var(--ease-out),
+    box-shadow 320ms var(--ease-out), transform 320ms var(--ease-out);
+}
+.cta-gold:hover {
+  color: var(--noir-950);
+  background: var(--gold-400);
+  border-color: var(--gold-400);
+  box-shadow: 0 0 0 1px var(--gold-400), 0 12px 34px -10px rgb(201 163 90 / 0.55);
+  transform: translateY(-1px) scale(1.02);
+}
+
+.link-underline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--cream-300);
+  font-weight: 500;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--gold-400);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 380ms var(--ease-out);
+}
+.link-underline:hover {
+  color: var(--cream-100);
+}
+.link-underline:hover::after {
+  transform: scaleX(1);
+}
+
+/* ---------------------------------------------------------------- */
+/* Scroll reveal: a single restrained fade-up, no scattered variants. */
+/* ---------------------------------------------------------------- */
+
+.reveal {
+  opacity: 0;
+  transform: scale(0.97) translateY(14px);
+  filter: blur(6px);
+  transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out),
+    filter 700ms var(--ease-out);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0);
+}
+
+.stagger > * {
+  opacity: 0;
+  transform: translateY(16px);
+  filter: blur(4px);
+  transition: opacity 560ms var(--ease-out), transform 560ms var(--ease-out),
+    filter 560ms var(--ease-out);
+}
+.stagger.is-visible > *:nth-child(1) { transition-delay: 0ms; }
+.stagger.is-visible > *:nth-child(2) { transition-delay: 100ms; }
+.stagger.is-visible > *:nth-child(3) { transition-delay: 200ms; }
+.stagger.is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .stagger > *,
+  .cta-gold,
+  .link-underline::after,
+  .atmosphere-parallax,
+  .hero-line,
+  .spotlight-item {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
+  .reveal,
+  .stagger > *,
+  .hero-line {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .atmosphere-parallax {
+    transform: none !important;
+  }
+  .film-grain,
+  .light-leak {
+    animation: none;
+  }
+}
